@@ -102,8 +102,8 @@ MOVIEDIRS=$(echo "$MOVIEDIRS" | awk '{FS="/" ; $0=$0 ; print $NF"|"$0}' | sort -
 
 # Basic filter
 if [[ $PATTERN ]]; then
-	TVDIRS=$(echo "$TVDIRS" | grep -i "$PATTERN")
-	MOVIEDIRS=$(echo "$MOVIEDIRS" | grep -i "$PATTERN")
+	TVDIRS=$(echo "$TVDIRS" | grep -iF "$PATTERN")
+	MOVIEDIRS=$(echo "$MOVIEDIRS" | grep -iF "$PATTERN")
 fi
 
 # List initial matches and exit
@@ -153,8 +153,8 @@ if [[ $NUM_TITLES -gt 1 ]]; then
 	REPLY=$(eval "echo \"$TITLES\" | $ROFI")
 
 	if [[ $REPLY ]]; then
-		DIRS=$(echo "$DIRS" | grep "$REPLY")
-		TITLES=$(echo "$TITLES" | grep "$REPLY")
+		DIRS=$(echo "$DIRS" | grep -F "$REPLY")
+		TITLES=$(echo "$TITLES" | grep -F "$REPLY")
 	else
 		DIRS=""
 		TITLES=""
@@ -182,7 +182,7 @@ if [[ $TYPE = "Movie" && $NUM_MATCHES -gt 1 ]]; then
 	REPLY=$(basename -a $(eval "echo \"$MATCHES\" | $ROFI"))
 
 	if [[ $REPLY ]]; then
-		MATCHES=$(echo "$MATCHES" | grep "$REPLY")
+		MATCHES=$(echo "$MATCHES" | grep -F "$REPLY")
 	else
 		>&2 echo "$NO_SEL"
 		exit 1
@@ -244,7 +244,7 @@ elif [[ $TYPE = "TV Show" ]]; then
 			exit 1
 		fi
 
-		TARGET=$(echo "$MATCHES" | grep "$REPLY")
+		TARGET=$(echo "$MATCHES" | grep -F "$REPLY")
 	else
 		TARGET=$(echo "$MATCHES" | grep $(echo "$EPISODES" | sed -n "$SEL_EP"p))
 	fi
