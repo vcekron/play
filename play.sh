@@ -107,11 +107,11 @@ shift $((OPTIND-1))
 PATTERN=$@
 
 # Fetch media index
-for tvdir in ${SERIES[@]}; do
-	TVDIRS+="$(find -L "$tvdir" -maxdepth 1 -type d | grep -v "\$RECYCLE.BIN")$'\n'"
+for seriesdir in ${SERIES[@]}; do
+	SERIESDIRS+="$(find -L "$seriesdir" -maxdepth 1 -type d | grep -v "\$RECYCLE.BIN")$'\n'"
 done
 
-TVDIRS=$(echo "$TVDIRS" | awk '{FS="/" ; $0=$0 ; print $NF"|"$0}' | sort -t/ -k1 | cut -d"|" -f2 | grep -v '^$')
+SERIESDIRS=$(echo "$SERIESDIRS" | awk '{FS="/" ; $0=$0 ; print $NF"|"$0}' | sort -t/ -k1 | cut -d"|" -f2 | grep -v '^$')
 
 for moviedir in ${MOVIES[@]}; do
 	MOVIEDIRS+="$(find -L "$moviedir" -maxdepth 1 -type d | grep -v "\$RECYCLE.BIN")$'\n'"
@@ -121,19 +121,19 @@ MOVIEDIRS=$(echo "$MOVIEDIRS" | awk '{FS="/" ; $0=$0 ; print $NF"|"$0}' | sort -
 
 # Basic filter
 if [[ $PATTERN ]]; then
-	TVDIRS=$(echo "$TVDIRS" | grep -iF "$PATTERN")
+	SERIESDIRS=$(echo "$SERIESDIRS" | grep -iF "$PATTERN")
 	MOVIEDIRS=$(echo "$MOVIEDIRS" | grep -iF "$PATTERN")
 fi
 
 # List initial matches and exit
 if [[ $LIST && $PATTERN ]]; then
-	if [[ ! $TVDIRS && ! $MOVIEDIRS ]]; then
+	if [[ ! $SERIESDIRS && ! $MOVIEDIRS ]]; then
 		echo -e "No matches for '$PATTERN'"
 		exit
 	fi
 	echo #
-	if [[ $TVDIRS ]]; then
-		echo -e "TV Shows\n------\n$TVDIRS\n"
+	if [[ $SERIESDIRS ]]; then
+		echo -e "Series\n------\n$SERIESDIRS\n"
 	fi
 	if [[ $MOVIEDIRS ]]; then
 		echo -e "Movies\n------\n$MOVIEDIRS\n"
@@ -142,27 +142,27 @@ if [[ $LIST && $PATTERN ]]; then
 fi
 
 # First refined selection step
-if [[ $TVDIRS && $MOVIEDIRS ]]; then
-	OPTIONS=("Movie" "TV Show")
+if [[ $SERIESDIRS && $MOVIEDIRS ]]; then
+	OPTIONS=("Movie" "Series")
 	REPLY=$(eval "echo \"${OPTIONS[*]}\" | $ROFI")
 
 	if [[ $REPLY = "Movie" ]]; then
 		DIRS="$MOVIEDIRS"
 		TITLES=$(basename -a $(echo "$DIRS"))
 		TYPE="Movie"
-	elif [[ $REPLY = "TV Show" ]]; then
-		DIRS="$TVDIRS"
+	elif [[ $REPLY = "Series" ]]; then
+		DIRS="$SERIESDIRS"
 		TITLES=$(basename -a $(echo "$DIRS"))
-		TYPE="TV Show"
+		TYPE="Series"
 	else
 		>&2 echo "$NO_SEL"
 		exit 1
 	fi
 
-elif [[ $TVDIRS ]]; then
-	DIRS="$TVDIRS"
+elif [[ $SERIESDIRS ]]; then
+	DIRS="$SERIESDIRS"
 	TITLES=$(basename -a $(echo "$DIRS"))
-	TYPE="TV Show";
+	TYPE="Series";
 elif [[ $MOVIEDIRS ]]; then
 	DIRS="$MOVIEDIRS"
 	TITLES=$(basename -a $(echo "$DIRS"))
@@ -213,17 +213,17 @@ if [[ $TYPE = "Movie" && $NUM_MATCHES -gt 1 ]]; then
 
 fi
 
-# Final selection step for TYPE:TV Show and general print to TARGET
+# Final selection step for TYPE:Series and general print to TARGET
 if [[ $TYPE = "Movie" ]]; then
 	TARGET="$MATCHES"
-elif [[ $SHUF && $TYPE = "TV Show" ]]; then
+elif [[ $SHUF && $TYPE = "Series" ]]; then
 
 	if [[ $SEL_S ]]; then
 		MATCHES=$(echo "$MATCHES" | grep "Season $SEL_S")
 	fi
 
 	TARGET=$(echo "$MATCHES" | shuf -n 1)
-elif [[ $TYPE = "TV Show" ]]; then
+elif [[ $TYPE = "Series" ]]; then
 
 	# Season selection
 	for match in $MATCHES; do
