@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 SCRIPTPATH="$0"
 while [ -h "$SCRIPTPATH" ]; do
@@ -11,12 +11,36 @@ SCRIPTPATH="$(cd -P "$(dirname "$SCRIPTPATH")" >/dev/null && pwd)"
 # Check for required files
 
 if [[ ! -f "$SCRIPTPATH/sources" ]]; then
-	>&2 echo "spotscript: could not find sources-file in working directory"
+	>&2 echo "play: could not find sources-file in working directory"
 	exit 1
 fi
 
+# Set array delimiter
+IFS=$'\n'
+
 # Source directories
-source "$SCRIPTPATH/sources"
+mapfile -t SOURCES < "$SCRIPTPATH/sources"
+
+for source in ${SOURCES[@]}; do
+	case $source in
+		"[movies]")
+			CATEGORY="MOVIES"
+			;;
+		"[series]")
+			CATEGORY="SERIES"
+			;;
+		"/"*)
+			eval "$CATEGORY"+="'$source'$'\n'"
+			;;
+		"~"*)
+			eval "$CATEGORY"+="'${HOME}${source:1}'$'\n'"
+			;;
+		*)
+			>&2 echo "play: sources-file contains invalid lines"
+			exit 1
+			;;
+	esac
+done
 
 # Players
 VIDEOPLAYER="mpv"
@@ -82,20 +106,15 @@ shift $((OPTIND-1))
 # Input arguments
 PATTERN=$@
 
-# Set array delimiter
-IFS=$'\n'
-
 # Fetch media index
-for tvdir in ${TVSHOWS[@]}; do
-	TVDIRS+=$(find -L "$HOME$tvdir" -maxdepth 1 -type d | grep -v "\$RECYCLE.BIN")
-	TVDIRS+=$'\n'
+for tvdir in ${SERIES[@]}; do
+	TVDIRS+="$(find -L "$tvdir" -maxdepth 1 -type d | grep -v "\$RECYCLE.BIN")$'\n'"
 done
 
 TVDIRS=$(echo "$TVDIRS" | awk '{FS="/" ; $0=$0 ; print $NF"|"$0}' | sort -t/ -k1 | cut -d"|" -f2 | grep -v '^$')
 
 for moviedir in ${MOVIES[@]}; do
-	MOVIEDIRS+=$(find -L "$HOME$moviedir" -maxdepth 1 -type d | grep -v "\$RECYCLE.BIN")
-	MOVIEDIRS+=$'\n'
+	MOVIEDIRS+="$(find -L "$moviedir" -maxdepth 1 -type d | grep -v "\$RECYCLE.BIN")$'\n'"
 done
 
 MOVIEDIRS=$(echo "$MOVIEDIRS" | awk '{FS="/" ; $0=$0 ; print $NF"|"$0}' | sort -t/ -k1 | cut -d"|" -f2 | grep -v '^$')
@@ -108,6 +127,10 @@ fi
 
 # List initial matches and exit
 if [[ $LIST && $PATTERN ]]; then
+	if [[ ! $TVDIRS && ! $MOVIEDIRS ]]; then
+		echo -e "No matches for '$PATTERN'"
+		exit
+	fi
 	echo #
 	if [[ $TVDIRS ]]; then
 		echo -e "TV Shows\n------\n$TVDIRS\n"
