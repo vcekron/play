@@ -1,5 +1,14 @@
 #! /bin/bash
 
+# Players
+VIDEOPLAYER="mpv"
+SYNCPLAY="syncplay --no-gui"
+
+# Menu
+ROFI="rofi -dmenu -i -p play"
+
+# Find path of script
+
 SCRIPTPATH="$0"
 while [ -h "$SCRIPTPATH" ]; do
 	SCRIPTDIR="$(cd -P "$(dirname "$SCRIPTPATH")" >/dev/null && pwd)"
@@ -42,18 +51,12 @@ for source in ${SOURCES[@]}; do
 	esac
 done
 
-# Players
-VIDEOPLAYER="mpv"
-SYNCPLAY="syncplay --no-gui"
-
 # Messages
 USAGE="usage: play [-h|-l|-rs|-S<season number> [-E<episode number>]] PATTERN"
 INV_ARG="play: invalid argument --"
 NO_SEL="play: no selection"
 
-# Menu
-ROFI="rofi -dmenu -i -p play"
-
+# Integer-matching regexp
 INTEXP='^[0-9]+([.][0-9]+)?$'
 
 # Input flags
@@ -103,26 +106,26 @@ done
 #Shift argument indices
 shift $((OPTIND-1))
 
-# Input arguments
+# Store input pattern
 PATTERN=$@
 
 # Fetch media index
-for seriesdir in ${SERIES[@]}; do
-	SERIESDIRS+="$(find -L "$seriesdir" -maxdepth 1 -type d | grep -v "\$RECYCLE.BIN")$'\n'"
-done
-
-SERIESDIRS=$(echo "$SERIESDIRS" | awk '{FS="/" ; $0=$0 ; print $NF"|"$0}' | sort -t/ -k1 | cut -d"|" -f2 | grep -v '^$')
-
 for moviedir in ${MOVIES[@]}; do
 	MOVIEDIRS+="$(find -L "$moviedir" -maxdepth 1 -type d | grep -v "\$RECYCLE.BIN")$'\n'"
 done
 
 MOVIEDIRS=$(echo "$MOVIEDIRS" | awk '{FS="/" ; $0=$0 ; print $NF"|"$0}' | sort -t/ -k1 | cut -d"|" -f2 | grep -v '^$')
 
+for seriesdir in ${SERIES[@]}; do
+	SERIESDIRS+="$(find -L "$seriesdir" -maxdepth 1 -type d | grep -v "\$RECYCLE.BIN")$'\n'"
+done
+
+SERIESDIRS=$(echo "$SERIESDIRS" | awk '{FS="/" ; $0=$0 ; print $NF"|"$0}' | sort -t/ -k1 | cut -d"|" -f2 | grep -v '^$')
+
 # Basic filter
 if [[ $PATTERN ]]; then
-	SERIESDIRS=$(echo "$SERIESDIRS" | grep -iF "$PATTERN")
 	MOVIEDIRS=$(echo "$MOVIEDIRS" | grep -iF "$PATTERN")
+	SERIESDIRS=$(echo "$SERIESDIRS" | grep -iF "$PATTERN")
 fi
 
 # List initial matches and exit
@@ -132,17 +135,20 @@ if [[ $LIST && $PATTERN ]]; then
 		exit
 	fi
 	echo #
-	if [[ $SERIESDIRS ]]; then
-		echo -e "Series\n------\n$SERIESDIRS\n"
-	fi
 	if [[ $MOVIEDIRS ]]; then
 		echo -e "Movies\n------\n$MOVIEDIRS\n"
 	fi
+	if [[ $SERIESDIRS ]]; then
+		echo -e "Series\n------\n$SERIESDIRS\n"
+	fi
 	exit
+elif [[ $LIST ]]; then
+	>&2 echo -e "play: list option requires a pattern to match"
+	exit 1
 fi
 
 # First refined selection step
-if [[ $SERIESDIRS && $MOVIEDIRS ]]; then
+if [[ $MOVIEDIRS && $SERIESDIRS ]]; then
 	OPTIONS=("Movie" "Series")
 	REPLY=$(eval "echo \"${OPTIONS[*]}\" | $ROFI")
 
@@ -159,14 +165,14 @@ if [[ $SERIESDIRS && $MOVIEDIRS ]]; then
 		exit 1
 	fi
 
-elif [[ $SERIESDIRS ]]; then
-	DIRS="$SERIESDIRS"
-	TITLES=$(basename -a $(echo "$DIRS"))
-	TYPE="Series";
 elif [[ $MOVIEDIRS ]]; then
 	DIRS="$MOVIEDIRS"
 	TITLES=$(basename -a $(echo "$DIRS"))
 	TYPE="Movie"
+elif [[ $SERIESDIRS ]]; then
+	DIRS="$SERIESDIRS"
+	TITLES=$(basename -a $(echo "$DIRS"))
+	TYPE="Series";
 fi
 
 NUM_TITLES=$(echo -e "$TITLES" | grep -c '^')
