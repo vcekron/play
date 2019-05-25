@@ -225,7 +225,7 @@ if [[ $TYPE = "Movie" ]]; then
 elif [[ $SHUF && $TYPE = "Series" ]]; then
 
 	if [[ $SEL_S ]]; then
-		MATCHES=$(echo "$MATCHES" | grep "Season $SEL_S")
+		MATCHES=$(echo "$MATCHES" | grep "$SEL_S/")
 	fi
 
 	TARGET=$(echo "$MATCHES" | shuf -n 1)
@@ -250,9 +250,9 @@ elif [[ $TYPE = "Series" ]]; then
 			exit 1
 		fi
 
-		MATCHES=$(echo "$MATCHES" | grep "Season $SEL_S")
+		MATCHES=$(echo "$MATCHES" | grep "$SEL_S/")
 	elif [[ $SEL_S ]]; then
-		MATCHES=$(echo "$MATCHES" | grep "Season $SEL_S")
+		MATCHES=$(echo "$MATCHES" | grep "$SEL_S/")
 	fi
 
 	if [[ ! $MATCHES ]]; then
