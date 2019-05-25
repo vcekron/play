@@ -182,8 +182,8 @@ if [[ $NUM_TITLES -gt 1 ]]; then
 	REPLY=$(eval "echo \"$TITLES\" | $ROFI")
 
 	if [[ $REPLY ]]; then
-		DIRS=$(echo "$DIRS" | grep -F "$REPLY")
-		TITLES=$(echo "$TITLES" | grep -F "$REPLY")
+		DIRS=$(echo "$DIRS" | grep -F "/$REPLY")
+		TITLES=$(echo "$TITLES" | grep -F "/$REPLY")
 	else
 		DIRS=""
 		TITLES=""
