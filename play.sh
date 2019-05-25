@@ -107,7 +107,7 @@ done
 shift $((OPTIND-1))
 
 # Store input pattern
-PATTERN=$@
+PATTERN="$@"
 
 # Fetch media index
 for moviedir in ${MOVIES[@]}; do
