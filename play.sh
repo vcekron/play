@@ -111,13 +111,13 @@ PATTERN="$@"
 
 # Fetch media index
 for moviedir in ${MOVIES[@]}; do
-	MOVIEDIRS+="$(find -L "$moviedir" -maxdepth 1 -type d | grep -v "\$RECYCLE.BIN")"
+	MOVIEDIRS+="$(find -L "$moviedir" -maxdepth 1 -type d | grep -v "\$RECYCLE.BIN")"$'\n'
 done
 
 MOVIEDIRS=$(echo "$MOVIEDIRS" | awk '{FS="/" ; $0=$0 ; print $NF"|"$0}' | sort -t/ -k1 | cut -d"|" -f2 | grep -v '^$')
 
 for seriesdir in ${SERIES[@]}; do
-	SERIESDIRS+="$(find -L "$seriesdir" -maxdepth 1 -type d | grep -v "\$RECYCLE.BIN")"
+	SERIESDIRS+="$(find -L "$seriesdir" -maxdepth 1 -type d | grep -v "\$RECYCLE.BIN")"$'\n'
 done
 
 SERIESDIRS=$(echo "$SERIESDIRS" | awk '{FS="/" ; $0=$0 ; print $NF"|"$0}' | sort -t/ -k1 | cut -d"|" -f2 | grep -v '^$')
