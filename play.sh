@@ -149,14 +149,14 @@ fi
 
 # First refined selection step
 if [[ $MOVIEDIRS && $SERIESDIRS ]]; then
-	OPTIONS=("Movie" "Series")
+	OPTIONS=("Films" "Shows")
 	REPLY=$(eval "echo \"${OPTIONS[*]}\" | $ROFI")
 
-	if [[ $REPLY = "Movie" ]]; then
+	if [[ $REPLY = "Films" ]]; then
 		DIRS="$MOVIEDIRS"
 		TITLES=$(basename -a $(echo "$DIRS"))
 		TYPE="Movie"
-	elif [[ $REPLY = "Series" ]]; then
+	elif [[ $REPLY = "Shows" ]]; then
 		DIRS="$SERIESDIRS"
 		TITLES=$(basename -a $(echo "$DIRS"))
 		TYPE="Series"
