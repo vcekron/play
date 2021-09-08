@@ -5,7 +5,7 @@ VIDEOPLAYER="mpv"
 SYNCPLAY="syncplay --no-gui"
 
 # Menu
-ROFI="rofi -dmenu -i -p play"
+ROFI='rofi -monitor -1 -theme "Tomorrow-Dusk" -dmenu -i -p play'
 
 # Find path of script
 
